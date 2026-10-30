@@ -133,7 +133,8 @@ async function speech(request, env, headers) {
   if (!authorized(request, env)) return json({ error: "Acceso no autorizado." }, 401, headers);
   if (limited(request)) return json({ error: "Límite temporal alcanzado. Esperá un minuto." }, 429, headers);
   const body = await request.json().catch(() => ({}));
-  const text = typeof body.text === "string" ? body.text.trim().slice(0, 1800) : "";\n  const requestedVoice = typeof body.voice === "string" && /^(voice_[a-zA-Z0-9_-]+|[A-Za-z]+)$/.test(body.voice) ? body.voice : (env.GEMINI_TTS_VOICE || "Algenib");
+  const text = typeof body.text === "string" ? body.text.trim().slice(0, 1800) : "";
+  const requestedVoice = typeof body.voice === "string" && /^(voice_[a-zA-Z0-9_-]+|[A-Za-z]+)$/.test(body.voice) ? body.voice : (env.GEMINI_TTS_VOICE || "Algenib");
   if (!text) return json({ error: "No hay texto para convertir en voz." }, 400, headers);
 
   if (env.GEMINI_API_KEY) {
@@ -177,7 +178,8 @@ export default {
     }
     if (request.method === "POST" && url.pathname === "/api/chat") return chat(request, env, headers);
     if (request.method === "POST" && url.pathname === "/api/search") return search(request, env, headers);
-    if (request.method === "POST" && url.pathname === "/api/speech") return speech(request, env, headers);\n    if (request.method === "GET" && url.pathname === "/api/voices") return listVoices(request, env, headers);
+    if (request.method === "POST" && url.pathname === "/api/speech") return speech(request, env, headers);
+    if (request.method === "GET" && url.pathname === "/api/voices") return listVoices(request, env, headers);
     return json({ error: "Ruta no encontrada." }, 404, headers);
   }
 };
