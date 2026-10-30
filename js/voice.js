@@ -1,7 +1,7 @@
 window.JarvisVoice={
   supported:!!(window.SpeechRecognition||window.webkitSpeechRecognition),
   recognition:null, voices:[], selectedURI:localStorage.getItem("jarvis-voice-uri")||"",
-  settings:{rate:Number(localStorage.getItem("jarvis-voice-rate")||"0.94"),pitch:Number(localStorage.getItem("jarvis-voice-pitch")||"0.78")},
+  settings:{rate:Number(localStorage.getItem("jarvis-voice-rate")||"0.90"),pitch:Number(localStorage.getItem("jarvis-voice-pitch")||"0.72")},
   loadVoices(){
     if(!("speechSynthesis" in window))return [];
     this.voices=window.speechSynthesis.getVoices()||[];
@@ -35,6 +35,6 @@ window.JarvisVoice={
     try{r.start();}catch(e){this.recognition=null;onError("No pude iniciar el micrófono. Esperá un momento e intentá otra vez.");}
   },
   stop(){if(this.recognition)this.recognition.stop();},
-  test(){this.speak("Sistemas operativos. Soy Jarvis. Estoy a tu disposición.");}
+  test(){this.speak("Sistemas operativos. Soy JARVIS. Estoy a tu disposición. Voz preparada. Esperando instrucciones.");}
 };
 if("speechSynthesis" in window){window.speechSynthesis.addEventListener("voiceschanged",()=>{window.JarvisVoice.loadVoices();document.dispatchEvent(new CustomEvent("jarvis:voices-ready"));});window.JarvisVoice.loadVoices();}
