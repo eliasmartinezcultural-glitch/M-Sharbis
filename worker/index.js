@@ -110,13 +110,36 @@ async function speech(request, env, headers) {
   const body = await request.json().catch(() => ({}));
   const text = typeof body.text === "string" ? body.text.trim().slice(0, 1800) : "";
   if (!text) return json({ error: "No hay texto para convertir en voz." }, 400, headers);
-  if (!env.OPENAI_API_KEY) return json({ error: "La voz cinematográfica remota todavía no está configurada." }, 503, headers);
-  const r = await fetch("https://api.openai.com/v1/audio/speech", {
+
+  if (env.GEMINI_API_KEY) {
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+      body: JSON.stringify({
+        model: env.GEMINI_TTS_MODEL || "gemini-3.8-flash-tts",
+        input: [{ type: "user_input", content: [{ type: "text", text, annotations: [{ type: "speech_metadata", style: "Speak in Spanish with a deep, mature, masculine-presenting, cinematic assistant voice. Low resonant register, smooth gravelly texture, calm authority, measured pace, precise diction, subtle warmth and a natural Rioplatense Spanish accent. Do not sound theatrical or exaggerated." }] }] }],
+        response_format: { type: "audio" },
+        generation_config: { speech_config: [{ voice: env.GEMINI_TTS_VOICE || "Algenib" }] }
+      })
+    });
+    const data = await r.json();
+    if (r.ok) {
+      const audioData = data.output_audio?.data || data.steps?.flatMap(step => step.content || []).filter(part => part.type === "audio").map(part => part.data).filter(Boolean).at(-1);
+      if (audioData) {
+        const bytes = Uint8Array.from(atob(audioData), ch => ch.charCodeAt(0));
+        return new Response(bytes, { status: 200, headers: { ...headers, "Content-Type": "audio/wav", "Cache-Control": "no-store", "X-Jarvis-Voice": "gemini-3.8-flash-tts" } });
+      }
+    }
+    if (!env.OPENAI_API_KEY) return json({ error: data.error?.message || "Gemini TTS no pudo generar el audio." }, 502, headers);
+  }
+
+  if (!env.OPENAI_API_KEY) return json({ error: "No hay un proveedor de voz configurado." }, 503, headers);
+  const fallback = await fetch("https://api.openai.com/v1/audio/speech", {
     method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + env.OPENAI_API_KEY },
-    body: JSON.stringify({ model: env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts", voice: env.OPENAI_TTS_VOICE || "onyx", input: text, instructions: "Speak Spanish with a deep, calm, refined, cinematic masculine voice. Neutral Latin American Spanish with a subtle Argentine accent. Controlled pace, warm resonance, articulate diction, understated confidence." , response_format: "mp3" })
+    body: JSON.stringify({ model: env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts", voice: env.OPENAI_TTS_VOICE || "onyx", input: text, instructions: "Speak Spanish with a deep, calm, refined, cinematic masculine voice. Neutral Latin American Spanish with a subtle Argentine accent. Controlled pace, warm resonance, articulate diction, understated confidence.", response_format: "mp3" })
   });
-  if (!r.ok) return json({ error: "El motor de voz no pudo generar el audio (" + r.status + ")." }, 502, headers);
-  return new Response(r.body, { status: 200, headers: { ...headers, "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
+  if (!fallback.ok) return json({ error: "Los proveedores de voz no pudieron generar el audio (" + fallback.status + ")." }, 502, headers);
+  return new Response(fallback.body, { status: 200, headers: { ...headers, "Content-Type": "audio/mpeg", "Cache-Control": "no-store", "X-Jarvis-Voice": "openai-fallback" } });
 }
 export default {
   async fetch(request, env) {
@@ -125,7 +148,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/api/health") {
-      return json({ status: "online", version: "1.0.0", providers: { gemini: !!env.GEMINI_API_KEY, openai: !!env.OPENAI_API_KEY, anthropic: !!env.ANTHROPIC_API_KEY }, webSearch: !!env.TAVILY_API_KEY, cinematicVoice: !!env.OPENAI_API_KEY }, 200, headers);
+      return json({ status: "online", version: "1.0.0", providers: { gemini: !!env.GEMINI_API_KEY, openai: !!env.OPENAI_API_KEY, anthropic: !!env.ANTHROPIC_API_KEY }, webSearch: !!env.TAVILY_API_KEY, cinematicVoice: !!(env.GEMINI_API_KEY || env.OPENAI_API_KEY) }, 200, headers);
     }
     if (request.method === "POST" && url.pathname === "/api/chat") return chat(request, env, headers);
     if (request.method === "POST" && url.pathname === "/api/search") return search(request, env, headers);
