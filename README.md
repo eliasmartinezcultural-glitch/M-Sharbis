@@ -31,7 +31,7 @@ Los archivos del Worker están en `worker/`. GitHub Pages no ejecuta ese servido
    - `TAVILY_API_KEY`: opcional; habilita búsqueda web.
 5. Guardar y volver a desplegar.
 
-Variables no secretas opcionales: `GEMINI_MODEL`, `OPENAI_MODEL`, `ANTHROPIC_MODEL`, `OPENAI_TTS_MODEL`, `OPENAI_TTS_VOICE`, `ALLOWED_ORIGIN`.
+Variables no secretas opcionales: `GEMINI_MODEL`, `OPENAI_MODEL`, `ANTHROPIC_MODEL`, `GEMINI_TTS_MODEL`, `GEMINI_TTS_VOICE`, `OPENAI_TTS_MODEL`, `OPENAI_TTS_VOICE`, `ALLOWED_ORIGIN`.
 Los valores iniciales están documentados en `worker/wrangler.toml`.
 
 ### 2. Conectar la web
@@ -56,11 +56,13 @@ Los nombres y disponibilidad de modelos cambian; actualizalos desde Cloudflare s
 
 ### 4. Voz cinematográfica
 
-La integración inicial usa la API de voz de OpenAI con el modelo `gpt-4o-mini-tts` y voz `onyx`. La documentación oficial indica que este modelo está previsto para retirarse el 6 de enero de 2027; por eso esta pieza es transitoria y deberá migrarse a una API de voz en tiempo real o a otro proveedor antes de esa fecha. La voz generada por IA debe identificarse claramente como tal para los usuarios.
+La voz remota prioritaria usa Gemini 3.8 Flash TTS (`gemini-3.8-flash-tts`) con el estilo de voz grave, madura, serena y cinematográfica. La configuración inicial selecciona `Algenib`, descrita por Google como una voz de textura áspera/granulada (gravelly). El timbre exacto debe probarse en el teléfono: no se promete una copia exacta de una voz de película.
 
-Si se configura `OPENAI_API_KEY`, el Worker puede solicitar audio con `gpt-4o-mini-tts` y voz `onyx`. La disponibilidad, calidad y costo dependen de la cuenta y del proveedor. Sin TTS remoto, se utiliza la voz instalada en Android/Chrome; el selector y el tono son una alternativa, no una réplica de una voz de película.
+La API permite controlar estilo, acento, ritmo y tono mediante metadatos de voz. También ofrece diseño de voz personalizado y biblioteca extendida. La voz remota es audio generado por IA y la interfaz lo informa al usuario.
 
-### 5. Búsqueda web
+Si Gemini TTS falla y hay `OPENAI_API_KEY`, el Worker usa como respaldo la API de voz de OpenAI con `gpt-4o-mini-tts` y `onyx`. Atención: OpenAI anuncia el retiro de ese modelo el 6 de enero de 2027; es solo un respaldo transitorio, no el camino principal.
+
+## 5. Búsqueda web
 
 Configurar `TAVILY_API_KEY` para obtener resultados web, mostrar enlaces a fuentes y pedir al modelo que sintetice la información. Sin esa clave, «investigá» usa Wikipedia en español como alternativa. Una búsqueda web no garantiza que las fuentes sean correctas: verificar siempre los enlaces originales.
 
