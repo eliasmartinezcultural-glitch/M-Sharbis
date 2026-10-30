@@ -1,0 +1,10 @@
+window.JarvisAI={
+ config:{endpoint:sessionStorage.getItem("jarvis-api-endpoint")||"",access:sessionStorage.getItem("jarvis-access-code")||"",provider:localStorage.getItem("jarvis-provider")||"auto"},
+ history:[],audio:null,
+ configure(endpoint,access,provider){this.config={endpoint:endpoint.trim().replace(/\/$/,""),access:access.trim(),provider};sessionStorage.setItem("jarvis-api-endpoint",this.config.endpoint);sessionStorage.setItem("jarvis-access-code",this.config.access);localStorage.setItem("jarvis-provider",provider);},
+ ready(){return /^https:\/\//.test(this.config.endpoint)&&this.config.access.length>=12;},
+ async health(){if(!this.config.endpoint)return null;const r=await fetch(this.config.endpoint+"/api/health");if(!r.ok)throw new Error("No pude contactar el servidor JARVIS.");return r.json();},
+ async chat(text){if(!this.ready())throw new Error("Falta configurar la dirección del servidor y el código de acceso. Abrí Conexión JARVIS.");this.history.push({role:"user",content:text});this.history=this.history.slice(-12);const r=await fetch(this.config.endpoint+"/api/chat",{method:"POST",headers:{"Content-Type":"application/json","X-Jarvis-Access":this.config.access},body:JSON.stringify({provider:this.config.provider,messages:this.history})});const data=await r.json().catch(()=>({}));if(!r.ok){this.history.pop();throw new Error(data.error||"El motor de inteligencia no pudo responder.");}this.history.push({role:"assistant",content:data.reply});return {text:data.reply,provider:data.provider};},
+ async speak(text,fallback){if(!this.ready()){fallback(text);return;}try{const r=await fetch(this.config.endpoint+"/api/speech",{method:"POST",headers:{"Content-Type":"application/json","X-Jarvis-Access":this.config.access},body:JSON.stringify({text})});if(!r.ok)throw new Error("TTS unavailable");const blob=await r.blob();if(this.audio){this.audio.pause();URL.revokeObjectURL(this.audio.src);}const url=URL.createObjectURL(blob);this.audio=new Audio(url);this.audio.play().catch(()=>fallback(text));}catch{fallback(text);}},
+ reset(){this.history=[];}
+};
