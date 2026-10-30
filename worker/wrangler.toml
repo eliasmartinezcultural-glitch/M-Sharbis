@@ -4,8 +4,8 @@ compatibility_date = "2026-10-30"
 
 [vars]
 ALLOWED_ORIGIN = "https://eliasmartinezcultural-glitch.github.io"
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-3.8-flash"
 OPENAI_MODEL = "gpt-4o-mini"
-ANTHROPIC_MODEL = "claude-3-5-haiku-latest"
+ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 OPENAI_TTS_MODEL = "gpt-4o-mini-tts"
 OPENAI_TTS_VOICE = "onyx"
