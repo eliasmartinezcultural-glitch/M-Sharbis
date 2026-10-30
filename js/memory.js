@@ -1,0 +1,1 @@
+window.JarvisMemory={key:"jarvis-notes-v1",all(){try{return JSON.parse(localStorage.getItem(this.key)||"[]")}catch{return[]}},save(note){const items=this.all();items.push({note,created:new Date().toISOString()});localStorage.setItem(this.key,JSON.stringify(items));return items.length},clear(){localStorage.removeItem(this.key)}};
