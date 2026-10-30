@@ -1,1 +1,19 @@
-{"name":"JARVIS — Asistente personal","short_name":"JARVIS","description":"Asistente personal por voz","start_url":"./","scope":"./","display":"standalone","background_color":"#050d18","theme_color":"#050d18","lang":"es-AR","icons":[]}
+{
+  "name": "JARVIS — Asistente personal",
+  "short_name": "JARVIS",
+  "description": "Asistente personal por voz",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050d18",
+  "theme_color": "#050d18",
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "./assets/jarvis.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
