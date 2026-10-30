@@ -104,11 +104,36 @@ async function search(request, env, headers) {
   if (!r.ok) return json({ error: data.message || "El buscador web respondió con un error (" + r.status + ")." }, 502, headers);
   return json({ results: (data.results || []).slice(0, 5).filter(x => { try { return new URL(x.url).protocol === "https:"; } catch { return false; } }).map(x => ({ title: String(x.title || "").slice(0, 180), url: x.url, content: String(x.content || "").slice(0, 900), score: x.score })) }, 200, headers);
 }
+async function listVoices(request, env, headers) {
+  if (!authorized(request, env)) return json({ error: "Acceso no autorizado." }, 401, headers);
+  if (!env.GEMINI_API_KEY) return json({ voices: [] }, 200, headers);
+  if (limited(request)) return json({ error: "Límite temporal alcanzado. Esperá un minuto." }, 429, headers);
+  const makeUrl = language => {
+    const params = new URLSearchParams();
+    params.set("language_code", language);
+    params.set("gender", "male");
+    params.set("pitch", "low");
+    params.set("context", "Conversational");
+    params.set("type", "prebuilt");
+    params.set("page_size", "50");
+    return "https://generativelanguage.googleapis.com/v1beta/voices?" + params.toString();
+  };
+  let response = await fetch(makeUrl("es-AR"), { headers: { "x-goog-api-key": env.GEMINI_API_KEY } });
+  let data = await response.json();
+  let list = data.voices || [];
+  if (!response.ok || !list.length) {
+    response = await fetch(makeUrl("es"), { headers: { "x-goog-api-key": env.GEMINI_API_KEY } });
+    data = await response.json();
+    list = data.voices || [];
+  }
+  if (!response.ok) return json({ error: "No pude consultar el catálogo de voces." }, 502, headers);
+  return json({ voices: list.map(v => ({ id: v.id || String(v.name || "").split("/").pop(), name: v.display_name || v.id || "Voz", language: v.language_code || "es", gender: v.gender || "male", pitch: v.pitch || "low", description: v.description || "" })) }, 200, headers);
+}
 async function speech(request, env, headers) {
   if (!authorized(request, env)) return json({ error: "Acceso no autorizado." }, 401, headers);
   if (limited(request)) return json({ error: "Límite temporal alcanzado. Esperá un minuto." }, 429, headers);
   const body = await request.json().catch(() => ({}));
-  const text = typeof body.text === "string" ? body.text.trim().slice(0, 1800) : "";
+  const text = typeof body.text === "string" ? body.text.trim().slice(0, 1800) : "";\n  const requestedVoice = typeof body.voice === "string" && /^(voice_[a-zA-Z0-9_-]+|[A-Za-z]+)$/.test(body.voice) ? body.voice : (env.GEMINI_TTS_VOICE || "Algenib");
   if (!text) return json({ error: "No hay texto para convertir en voz." }, 400, headers);
 
   if (env.GEMINI_API_KEY) {
@@ -119,7 +144,7 @@ async function speech(request, env, headers) {
         model: env.GEMINI_TTS_MODEL || "gemini-3.8-flash-tts",
         input: [{ type: "user_input", content: [{ type: "text", text, annotations: [{ type: "speech_metadata", style: "Speak in Spanish with a deep, mature, masculine-presenting, cinematic assistant voice. Low resonant register, smooth gravelly texture, calm authority, measured pace, precise diction, subtle warmth and a natural Rioplatense Spanish accent. Do not sound theatrical or exaggerated." }] }] }],
         response_format: { type: "audio" },
-        generation_config: { speech_config: [{ voice: env.GEMINI_TTS_VOICE || "Algenib" }] }
+        generation_config: { speech_config: [{ voice: requestedVoice }] }
       })
     });
     const data = await r.json();
@@ -152,7 +177,7 @@ export default {
     }
     if (request.method === "POST" && url.pathname === "/api/chat") return chat(request, env, headers);
     if (request.method === "POST" && url.pathname === "/api/search") return search(request, env, headers);
-    if (request.method === "POST" && url.pathname === "/api/speech") return speech(request, env, headers);
+    if (request.method === "POST" && url.pathname === "/api/speech") return speech(request, env, headers);\n    if (request.method === "GET" && url.pathname === "/api/voices") return listVoices(request, env, headers);
     return json({ error: "Ruta no encontrada." }, 404, headers);
   }
 };
