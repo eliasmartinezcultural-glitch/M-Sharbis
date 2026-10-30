@@ -79,6 +79,7 @@ async function chat(request, env, headers) {
   let body;
   try { body = await request.json(); } catch { return json({ error: "El formato de la solicitud no es válido." }, 400, headers); }
   const messages = cleanMessages(body.messages);
+  if (messages.reduce((sum, message) => sum + message.content.length, 0) > 18_000) return json({ error: "El historial es demasiado extenso. Iniciá una conversación nueva." }, 413, headers);
   if (!messages.length || messages[messages.length - 1].role !== "user") return json({ error: "Falta el mensaje del usuario." }, 400, headers);
   const requested = ["auto", "gemini", "openai", "anthropic"].includes(body.provider) ? body.provider : "auto";
   const providers = requested === "auto" ? ["gemini", "openai", "anthropic"] : [requested];
