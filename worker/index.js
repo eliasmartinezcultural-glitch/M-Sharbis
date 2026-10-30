@@ -41,7 +41,7 @@ function cleanMessages(input) {
     .map(m => ({ role: m.role, content: m.content.trim().slice(0, 5000) })).filter(m => m.content);
 }
 async function askGemini(env, messages) {
-  const model = env.GEMINI_MODEL || "gemini-2.5-flash";
+  const model = env.GEMINI_MODEL || "gemini-3.8-flash";
   const contents = messages.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
   const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(env.GEMINI_API_KEY), {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -62,7 +62,7 @@ async function askOpenAI(env, messages) {
   return data.choices?.[0]?.message?.content?.trim() || "No recibí una respuesta de OpenAI.";
 }
 async function askAnthropic(env, messages) {
-  const model = env.ANTHROPIC_MODEL || "claude-3-5-haiku-latest";
+  const model = env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST", headers: { "Content-Type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({ model, system: SYSTEM_PROMPT, max_tokens: 1200, messages })
