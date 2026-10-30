@@ -92,7 +92,7 @@ async function chat(request, env, headers) {
   }
   return json({ error: "No hay un motor disponible para responder.", details: failures }, 503, headers);
 }
-async function speech(request, env, headers) {
+async function search(request, env, headers) {\n  if (!authorized(request, env)) return json({ error: "Acceso no autorizado." }, 401, headers);\n  if (limited(request)) return json({ error: "Límite temporal alcanzado. Esperá un minuto." }, 429, headers);\n  if (!env.TAVILY_API_KEY) return json({ error: "La búsqueda web todavía no está configurada en el servidor." }, 503, headers);\n  const body = await request.json().catch(() => ({}));\n  const query = typeof body.query === "string" ? body.query.trim().slice(0, 350) : "";\n  if (!query) return json({ error: "Falta el texto de búsqueda." }, 400, headers);\n  const r = await fetch("https://api.tavily.com/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ api_key: env.TAVILY_API_KEY, query, search_depth: "basic", max_results: 5, include_answer: false }) });\n  const data = await r.json();\n  if (!r.ok) return json({ error: data.message || "El buscador web respondió con un error (" + r.status + ")." }, 502, headers);\n  return json({ results: (data.results || []).slice(0, 5).map(x => ({ title: String(x.title || "").slice(0, 180), url: x.url, content: String(x.content || "").slice(0, 900), score: x.score })) }, 200, headers);\n}\nasync function speech(request, env, headers) {
   if (!authorized(request, env)) return json({ error: "Acceso no autorizado." }, 401, headers);
   const body = await request.json().catch(() => ({}));
   const text = typeof body.text === "string" ? body.text.trim().slice(0, 1800) : "";
@@ -112,9 +112,9 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/api/health") {
-      return json({ status: "online", version: "1.0.0", providers: { gemini: !!env.GEMINI_API_KEY, openai: !!env.OPENAI_API_KEY, anthropic: !!env.ANTHROPIC_API_KEY }, cinematicVoice: !!env.OPENAI_API_KEY }, 200, headers);
+      return json({ status: "online", version: "1.0.0", providers: { gemini: !!env.GEMINI_API_KEY, openai: !!env.OPENAI_API_KEY, anthropic: !!env.ANTHROPIC_API_KEY }, webSearch: !!env.TAVILY_API_KEY, cinematicVoice: !!env.OPENAI_API_KEY }, 200, headers);
     }
-    if (request.method === "POST" && url.pathname === "/api/chat") return chat(request, env, headers);
+    if (request.method === "POST" && url.pathname === "/api/chat") return chat(request, env, headers);\n    if (request.method === "POST" && url.pathname === "/api/search") return search(request, env, headers);
     if (request.method === "POST" && url.pathname === "/api/speech") return speech(request, env, headers);
     return json({ error: "Ruta no encontrada." }, 404, headers);
   }
