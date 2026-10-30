@@ -128,7 +128,7 @@ async function listVoices(request, env, headers) {
     list = data.voices || [];
   }
   if (!response.ok) return json({ error: "No pude consultar el catálogo de voces." }, 502, headers);
-  return json({ voices: list.map(v => ({ id: v.id || String(v.name || "").split("/").pop(), name: v.display_name || v.id || "Voz", language: v.language_code || "es", gender: v.gender || "male", pitch: v.pitch || "low", description: v.description || "" })) }, 200, headers);
+  return json({ voices: list.map(v => ({ id: String(v.id || v.name || "Algenib").split("/").pop(), name: v.display_name || v.id || "Voz", language: v.language_code || "es", gender: v.gender || "male", pitch: v.pitch || "low", description: v.description || "" })) }, 200, headers);
 }
 async function speech(request, env, headers) {
   if (!authorized(request, env)) return json({ error: "Acceso no autorizado." }, 401, headers);
