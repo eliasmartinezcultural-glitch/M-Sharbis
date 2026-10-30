@@ -54,7 +54,9 @@ Modelos configurables en el entorno del Worker:
 
 Los nombres y disponibilidad de modelos cambian; actualizalos desde Cloudflare sin tocar el frontend.
 
-### 4. Voz cinematográfica\n\nLa integración inicial usa la API de voz de OpenAI con el modelo `gpt-4o-mini-tts` y voz `onyx`. La documentación oficial indica que este modelo está previsto para retirarse el 6 de enero de 2027; por eso esta pieza es transitoria y deberá migrarse a una API de voz en tiempo real o a otro proveedor antes de esa fecha. La voz generada por IA debe identificarse claramente como tal para los usuarios.
+### 4. Voz cinematográfica
+
+La integración inicial usa la API de voz de OpenAI con el modelo `gpt-4o-mini-tts` y voz `onyx`. La documentación oficial indica que este modelo está previsto para retirarse el 6 de enero de 2027; por eso esta pieza es transitoria y deberá migrarse a una API de voz en tiempo real o a otro proveedor antes de esa fecha. La voz generada por IA debe identificarse claramente como tal para los usuarios.
 
 Si se configura `OPENAI_API_KEY`, el Worker puede solicitar audio con `gpt-4o-mini-tts` y voz `onyx`. La disponibilidad, calidad y costo dependen de la cuenta y del proveedor. Sin TTS remoto, se utiliza la voz instalada en Android/Chrome; el selector y el tono son una alternativa, no una réplica de una voz de película.
 
