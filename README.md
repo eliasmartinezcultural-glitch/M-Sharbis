@@ -31,7 +31,7 @@ Los archivos del Worker están en `worker/`. GitHub Pages no ejecuta ese servido
    - `TAVILY_API_KEY`: opcional; habilita búsqueda web.
 5. Guardar y volver a desplegar.
 
-Variables no secretas opcionales: `GEMINI_MODEL`, `OPENAI_MODEL`, `ANTHROPIC_MODEL`, `GEMINI_TTS_MODEL`, `GEMINI_TTS_VOICE`, `OPENAI_TTS_MODEL`, `OPENAI_TTS_VOICE`, `ALLOWED_ORIGIN`.
+Variables no secretas opcionales: `GEMINI_TTS_MODEL`, `GEMINI_TTS_VOICE`, `GEMINI_MODEL`, `OPENAI_MODEL`, `ANTHROPIC_MODEL`, `GEMINI_TTS_MODEL`, `GEMINI_TTS_VOICE`, `OPENAI_TTS_MODEL`, `OPENAI_TTS_VOICE`, `ALLOWED_ORIGIN`.
 Los valores iniciales están documentados en `worker/wrangler.toml`.
 
 ### 2. Conectar la web
@@ -56,7 +56,7 @@ Los nombres y disponibilidad de modelos cambian; actualizalos desde Cloudflare s
 
 ### 4. Voz cinematográfica
 
-La voz remota prioritaria usa Gemini 3.8 Flash TTS (`gemini-3.8-flash-tts`) con el estilo de voz grave, madura, serena y cinematográfica. La configuración inicial selecciona `Algenib`, descrita por Google como una voz de textura áspera/granulada (gravelly). El timbre exacto debe probarse en el teléfono: no se promete una copia exacta de una voz de película.
+La voz remota prioritaria usa Gemini 3.8 Flash TTS (`gemini-3.8-flash-tts`) con el estilo de voz grave, madura, serena y cinematográfica. El servidor consulta el catálogo de voces de Google y prioriza voces en español con presentación masculina y tono bajo. Si el catálogo no devuelve opciones, usa `Algenib` como voz base, descrita como granulada (gravelly). El timbre exacto debe probarse en el teléfono: no se promete una copia exacta de una voz de película.
 
 La API permite controlar estilo, acento, ritmo y tono mediante metadatos de voz. También ofrece diseño de voz personalizado y biblioteca extendida. La voz remota es audio generado por IA y la interfaz lo informa al usuario.
 
